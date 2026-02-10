@@ -113,7 +113,7 @@ def get_color_palette(scheme, custom=None):
 
 # Fungsi untuk membuat Radar Chart
 def create_radar_chart(labels, scores, title, color, width, height, dpi_val):
-    # Convert scores to list if needed and ensure numeric
+    # Konversi skor ke list dan pastikan numerik
     scores = [int(s) if isinstance(s, (int, float)) and s == int(s) else float(s) for s in scores]
     
     scores_plot = scores + scores[:1]
@@ -129,25 +129,27 @@ def create_radar_chart(labels, scores, title, color, width, height, dpi_val):
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels([])
     
-    # Label di luar lingkaran
-    label_radius = max(scores) + 0.8
+    # Menghitung batas maksimal untuk padding label
+    max_score = max(scores)
+    
+    # Label di luar lingkaran dengan padding dinamis
+    label_radius = max_score * 1.2  # Memberi ruang 20% lebih luas dari skor maks
     for angle, label in zip(angles[:-1], labels):
         ax.text(angle, label_radius, label, ha='center', va='center',
                 fontsize=14, weight='bold', color='#2c3e50')
     
     # Skala radial
     ax.set_rlabel_position(30)
-    max_score = max(scores)
     ax.set_yticks(range(1, max_score + 1))
     ax.set_yticklabels([str(i) for i in range(1, max_score + 1)],
                        fontsize=12, color='#7f8c8d', weight='bold')
-    ax.set_ylim(0, max_score)
+    ax.set_ylim(0, max_score * 1.1) # Tambahkan limit agar garis terluar tidak mepet frame
     
     # Grid
     ax.grid(color='#bdc3c7', linestyle='--', linewidth=1, alpha=0.7)
     ax.spines['polar'].set_color('#34495e')
     
-    # Plot
+    # Plot Skor Aktual
     ax.plot(angles, scores_plot, 'o-', linewidth=3, color=color,
             markersize=10, markerfacecolor='white', markeredgewidth=2.5,
             markeredgecolor=color, label='Skor Aktual')
@@ -155,19 +157,22 @@ def create_radar_chart(labels, scores, title, color, width, height, dpi_val):
     
     # Nilai di titik
     for angle, score in zip(angles[:-1], scores):
-        offset = -0.3 if score == max_score else 0.3
-        ax.text(angle, score + offset, str(score), ha='center', va='center',
+        ax.text(angle, score, str(score), ha='center', va='center',
                 fontsize=14, weight='bold',
-                bbox=dict(boxstyle='round,pad=0.4', facecolor='white',
+                bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
                          edgecolor=color, linewidth=2, alpha=0.9))
     
     # Target line
     target = [max_score] * len(angles)
     ax.plot(angles, target, 'r--', linewidth=2, alpha=0.5, label='Target')
     
-    plt.title(title, fontsize=18, weight='bold', color='#2c3e50', y=1.08)
-    plt.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), fontsize=12)
-    plt.tight_layout()
+    # PERBAIKAN UTAMA: Judul dengan padding lebih besar
+    plt.title(title, fontsize=18, weight='bold', color='#2c3e50', pad=50) 
+    
+    plt.legend(loc='upper right', bbox_to_anchor=(1.2, 1.15), fontsize=12)
+    
+    # Sesuaikan margin atas agar judul tidak terpotong saat di-render
+    plt.subplots_adjust(top=0.85) 
     
     return fig
 
