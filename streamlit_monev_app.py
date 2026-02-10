@@ -264,10 +264,6 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
     plt.title(title, fontsize=title_fontsize, weight='bold', 
              color='#2c3e50', pad=80)
     
-    # Tambahkan subtitle skala
-    fig.text(0.5, 0.95, 'Skala: 1=Kurang | 2=Cukup | 3=Baik | 4=Baik Sekali', 
-             ha='center', fontsize=11, style='italic', color='#7f8c8d')
-    
     plt.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), 
               fontsize=13, frameon=True, shadow=True, fancybox=True)
     
