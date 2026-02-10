@@ -134,6 +134,11 @@ with st.sidebar:
     fig_height = st.slider("Tinggi Gambar", 6, 18, 10)
     dpi = st.slider("Resolusi (DPI)", 100, 400, 200)
     
+    st.markdown("### 🔤 Pengaturan Font")
+    title_font_size = st.slider("Ukuran Font Judul", 14, 32, 20)
+    label_font_size = st.slider("Ukuran Font Label", 8, 20, 13)
+    value_font_size = st.slider("Ukuran Font Nilai", 8, 20, 14)
+    
     st.markdown("---")
     st.markdown("### 💾 Download Options")
     download_format = st.radio("Format File", ["PNG", "PDF", "SVG"])
@@ -168,7 +173,8 @@ def get_gradient_cmap(color):
     return cmap
 
 # Fungsi untuk membuat Radar Chart dengan estetika tinggi
-def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, use_3d=True, use_grad=True):
+def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, use_3d=True, use_grad=True, 
+                       title_fontsize=20, label_fontsize=13, value_fontsize=14):
     scores = [int(s) if isinstance(s, (int, float)) and s == int(s) else float(s) for s in scores]
     
     scores_plot = scores + scores[:1]
@@ -190,12 +196,12 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
     
     max_score = max(scores)
     
-    # Label dengan styling lebih baik
-    label_radius = max_score * 1.25
+    # Label dengan styling lebih baik - kurangi radius agar tidak terlalu jauh
+    label_radius = max_score * 1.18
     for i, (angle, label) in enumerate(zip(angles[:-1], labels)):
         color_idx = i % len(colors)
         ax.text(angle, label_radius, label, ha='center', va='center',
-                fontsize=13, weight='bold', color=colors[color_idx],
+                fontsize=label_fontsize, weight='bold', color=colors[color_idx],
                 bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
                          edgecolor=colors[color_idx], linewidth=2, alpha=0.9))
     
@@ -214,7 +220,7 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
     
     ax.set_yticklabels(ytick_labels,
                        fontsize=10, color='#5a6c7d', weight='600')
-    ax.set_ylim(0, max_score * 1.15)
+    ax.set_ylim(0, max_score * 1.3)
     
     # Grid styling
     ax.grid(color='#d1d8e0', linestyle='--', linewidth=1.5, alpha=0.6)
@@ -245,7 +251,7 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
     for i, (angle, score) in enumerate(zip(angles[:-1], scores)):
         color_idx = i % len(colors)
         ax.text(angle, score, str(score), ha='center', va='center',
-                fontsize=13, weight='bold', color='white',
+                fontsize=value_fontsize, weight='bold', color='white',
                 bbox=dict(boxstyle='round,pad=0.4', facecolor=colors[color_idx],
                          edgecolor='white', linewidth=2.5, alpha=0.95))
     
@@ -254,23 +260,24 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
     ax.plot(angles, target, '--', linewidth=2.5, alpha=0.7, 
             color='#e74c3c', label='Target', zorder=2)
     
-    # Judul dengan gradient effect dan subtitle profesional
-    plt.title(title, fontsize=20, weight='bold', 
-             color='#2c3e50', pad=60,
-             bbox=dict(boxstyle='round,pad=0.8', facecolor='white', 
-                      edgecolor='#667eea', linewidth=3, alpha=0.9))
+    # Judul profesional TANPA border/boundary
+    plt.title(title, fontsize=title_fontsize, weight='bold', 
+             color='#2c3e50', pad=80)
     
-
+    # Tambahkan subtitle skala
+    fig.text(0.5, 0.95, 'Skala: 1=Kurang | 2=Cukup | 3=Baik | 4=Baik Sekali', 
+             ha='center', fontsize=11, style='italic', color='#7f8c8d')
     
-    plt.legend(loc='upper right', bbox_to_anchor=(1.25, 1.15), 
+    plt.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), 
               fontsize=13, frameon=True, shadow=True, fancybox=True)
     
-    plt.subplots_adjust(top=0.82)
+    plt.subplots_adjust(top=0.88, bottom=0.08, left=0.08, right=0.92)
     
     return fig
 
 # Fungsi untuk Bar Chart Horizontal dengan seaborn
-def create_horizontal_bar(categories, values, title, colors, width, height, dpi_val, use_3d=True, use_grad=True):
+def create_horizontal_bar(categories, values, title, colors, width, height, dpi_val, use_3d=True, use_grad=True,
+                          title_fontsize=20, label_fontsize=13, value_fontsize=14):
     fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#f8f9fa')
     ax.set_facecolor('#ffffff')
     
@@ -291,16 +298,16 @@ def create_horizontal_bar(categories, values, title, colors, width, height, dpi_
     for i, (bar, val) in enumerate(zip(bars.patches, values)):
         color_idx = i % len(palette)
         ax.text(bar.get_width() + max(values)*0.02, bar.get_y() + bar.get_height()/2,
-                f'{val:.1f}', ha='left', va='center', fontsize=14, weight='bold',
+                f'{val:.1f}', ha='left', va='center', fontsize=value_fontsize, weight='bold',
                 color=palette[color_idx],
                 bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
                          edgecolor=palette[color_idx], linewidth=2))
     
-    ax.set_xlabel('Nilai', fontsize=15, weight='bold', color='#2c3e50')
+    ax.set_xlabel('Nilai', fontsize=label_fontsize, weight='bold', color='#2c3e50')
     ax.set_ylabel('')
-    ax.set_title(title, fontsize=20, weight='bold', pad=25, color='#2c3e50',
-                bbox=dict(boxstyle='round,pad=0.7', facecolor='white',
-                         edgecolor='#667eea', linewidth=2.5))
+    
+    # Judul profesional TANPA border
+    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#2c3e50')
     ax.set_xlim(0, max(values) * 1.2)
     
     # Styling axes
@@ -322,7 +329,8 @@ def create_horizontal_bar(categories, values, title, colors, width, height, dpi_
     return fig
 
 # Fungsi untuk Bar Chart Vertikal dengan seaborn
-def create_vertical_bar(categories, values, title, colors, width, height, dpi_val, use_3d=True, use_grad=True):
+def create_vertical_bar(categories, values, title, colors, width, height, dpi_val, use_3d=True, use_grad=True,
+                        title_fontsize=20, label_fontsize=13, value_fontsize=14):
     fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#f8f9fa')
     ax.set_facecolor('#ffffff')
     
@@ -342,16 +350,16 @@ def create_vertical_bar(categories, values, title, colors, width, height, dpi_va
         color_idx = i % len(palette)
         height = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2., height + max(values)*0.02,
-                f'{val:.1f}', ha='center', va='bottom', fontsize=14, weight='bold',
+                f'{val:.1f}', ha='center', va='bottom', fontsize=value_fontsize, weight='bold',
                 color=palette[color_idx],
                 bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
                          edgecolor=palette[color_idx], linewidth=2))
     
-    ax.set_ylabel('Nilai', fontsize=15, weight='bold', color='#2c3e50')
+    ax.set_ylabel('Nilai', fontsize=label_fontsize, weight='bold', color='#2c3e50')
     ax.set_xlabel('')
-    ax.set_title(title, fontsize=20, weight='bold', pad=25, color='#2c3e50',
-                bbox=dict(boxstyle='round,pad=0.7', facecolor='white',
-                         edgecolor='#667eea', linewidth=2.5))
+    
+    # Judul profesional TANPA border
+    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#2c3e50')
     ax.set_ylim(0, max(values) * 1.2)
     
     plt.xticks(rotation=15, ha='right', fontsize=11)
@@ -375,7 +383,8 @@ def create_vertical_bar(categories, values, title, colors, width, height, dpi_va
     return fig
 
 # Fungsi untuk Histogram dengan seaborn
-def create_histogram(data, bins, title, colors, width, height, dpi_val, use_grad=True):
+def create_histogram(data, bins, title, colors, width, height, dpi_val, use_grad=True,
+                     title_fontsize=20, label_fontsize=13):
     fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#f8f9fa')
     ax.set_facecolor('#ffffff')
     
@@ -388,11 +397,11 @@ def create_histogram(data, bins, title, colors, width, height, dpi_val, use_grad
     # KDE line dengan warna berbeda
     kde_color = colors[1] if isinstance(colors, list) and len(colors) > 1 else '#e74c3c'
     
-    ax.set_xlabel('Nilai', fontsize=15, weight='bold', color='#2c3e50')
-    ax.set_ylabel('Frekuensi', fontsize=15, weight='bold', color='#2c3e50')
-    ax.set_title(title, fontsize=20, weight='bold', pad=25, color='#2c3e50',
-                bbox=dict(boxstyle='round,pad=0.7', facecolor='white',
-                         edgecolor='#667eea', linewidth=2.5))
+    ax.set_xlabel('Nilai', fontsize=label_fontsize, weight='bold', color='#2c3e50')
+    ax.set_ylabel('Frekuensi', fontsize=label_fontsize, weight='bold', color='#2c3e50')
+    
+    # Judul profesional TANPA border
+    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#2c3e50')
     
     # Styling axes
     ax.spines['top'].set_visible(False)
@@ -412,7 +421,8 @@ def create_histogram(data, bins, title, colors, width, height, dpi_val, use_grad
     return fig
 
 # Fungsi untuk Pie Chart yang lebih cantik
-def create_pie_chart(labels, values, title, colors, width, height, dpi_val, use_3d=True):
+def create_pie_chart(labels, values, title, colors, width, height, dpi_val, use_3d=True,
+                     title_fontsize=20, label_fontsize=13):
     fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#f8f9fa')
     
     if isinstance(colors, list):
@@ -428,28 +438,28 @@ def create_pie_chart(labels, values, title, colors, width, height, dpi_val, use_
     wedges, texts, autotexts = ax.pie(values, labels=labels, autopct='%1.1f%%',
                                        startangle=90, colors=palette,
                                        explode=explode, shadow=use_3d,
-                                       textprops={'fontsize': 13, 'weight': 'bold'})
+                                       textprops={'fontsize': label_fontsize, 'weight': 'bold'})
     
     # Styling teks
     for autotext in autotexts:
         autotext.set_color('white')
-        autotext.set_fontsize(14)
+        autotext.set_fontsize(label_fontsize + 1)
         autotext.set_weight('bold')
     
     for text in texts:
-        text.set_fontsize(13)
+        text.set_fontsize(label_fontsize)
         text.set_weight('bold')
         text.set_color('#2c3e50')
     
-    ax.set_title(title, fontsize=20, weight='bold', pad=25, color='#2c3e50',
-                bbox=dict(boxstyle='round,pad=0.7', facecolor='white',
-                         edgecolor='#667eea', linewidth=2.5))
+    # Judul profesional TANPA border
+    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#2c3e50')
     
     plt.tight_layout()
     return fig
 
 # Fungsi untuk Grouped Bar Chart
-def create_grouped_bar(categories, data_dict, title, colors, width, height, dpi_val, use_grad=True):
+def create_grouped_bar(categories, data_dict, title, colors, width, height, dpi_val, use_grad=True,
+                       title_fontsize=20, label_fontsize=13, value_fontsize=14):
     fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#f8f9fa')
     ax.set_facecolor('#ffffff')
     
@@ -471,13 +481,13 @@ def create_grouped_bar(categories, data_dict, title, colors, width, height, dpi_
             height = bar.get_height()
             ax.text(bar.get_x() + bar.get_width()/2., height,
                    f'{height:.1f}', ha='center', va='bottom',
-                   fontsize=11, weight='bold', color=palette[i])
+                   fontsize=value_fontsize - 3, weight='bold', color=palette[i])
     
-    ax.set_xlabel('Kategori', fontsize=15, weight='bold', color='#2c3e50')
-    ax.set_ylabel('Nilai', fontsize=15, weight='bold', color='#2c3e50')
-    ax.set_title(title, fontsize=20, weight='bold', pad=25, color='#2c3e50',
-                bbox=dict(boxstyle='round,pad=0.7', facecolor='white',
-                         edgecolor='#667eea', linewidth=2.5))
+    ax.set_xlabel('Kategori', fontsize=label_fontsize, weight='bold', color='#2c3e50')
+    ax.set_ylabel('Nilai', fontsize=label_fontsize, weight='bold', color='#2c3e50')
+    
+    # Judul profesional TANPA border
+    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#2c3e50')
     ax.set_xticks(x)
     ax.set_xticklabels(categories, rotation=15, ha='right')
     
@@ -493,7 +503,8 @@ def create_grouped_bar(categories, data_dict, title, colors, width, height, dpi_
     return fig
 
 # Fungsi untuk Stacked Bar Chart
-def create_stacked_bar(categories, data_dict, title, colors, width, height, dpi_val):
+def create_stacked_bar(categories, data_dict, title, colors, width, height, dpi_val,
+                       title_fontsize=20, label_fontsize=13, value_fontsize=14):
     fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#f8f9fa')
     ax.set_facecolor('#ffffff')
     
@@ -513,16 +524,16 @@ def create_stacked_bar(categories, data_dict, title, colors, width, height, dpi_
             if val > 0:
                 ax.text(bar.get_x() + bar.get_width()/2.,
                        bottom[j] + val/2, f'{val:.0f}',
-                       ha='center', va='center', fontsize=12,
+                       ha='center', va='center', fontsize=value_fontsize - 2,
                        weight='bold', color='white')
         
         bottom += values
     
-    ax.set_xlabel('Kategori', fontsize=15, weight='bold', color='#2c3e50')
-    ax.set_ylabel('Nilai', fontsize=15, weight='bold', color='#2c3e50')
-    ax.set_title(title, fontsize=20, weight='bold', pad=25, color='#2c3e50',
-                bbox=dict(boxstyle='round,pad=0.7', facecolor='white',
-                         edgecolor='#667eea', linewidth=2.5))
+    ax.set_xlabel('Kategori', fontsize=label_fontsize, weight='bold', color='#2c3e50')
+    ax.set_ylabel('Nilai', fontsize=label_fontsize, weight='bold', color='#2c3e50')
+    
+    # Judul profesional TANPA border
+    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#2c3e50')
     
     plt.xticks(rotation=15, ha='right')
     ax.legend(fontsize=12, frameon=True, shadow=True, fancybox=True)
@@ -862,7 +873,8 @@ try:
     elif "Radar" in viz_type:
         if len(labels) == len(values) and len(labels) > 0:
             fig = create_radar_chart(labels, values, title_input, colors, 
-                                    fig_width, fig_height, dpi, use_3d_effect, use_gradient)
+                                    fig_width, fig_height, dpi, use_3d_effect, use_gradient,
+                                    title_font_size, label_font_size, value_font_size)
             st.pyplot(fig)
             
             buf = save_figure(fig, download_format)
@@ -878,7 +890,8 @@ try:
     elif "Horizontal" in viz_type:
         if len(categories) == len(values) and len(categories) > 0:
             fig = create_horizontal_bar(categories, values, title_input, colors,
-                                       fig_width, fig_height, dpi, use_3d_effect, use_gradient)
+                                       fig_width, fig_height, dpi, use_3d_effect, use_gradient,
+                                       title_font_size, label_font_size, value_font_size)
             st.pyplot(fig)
             
             buf = save_figure(fig, download_format)
@@ -894,7 +907,8 @@ try:
     elif "Vertikal" in viz_type:
         if len(categories) == len(values) and len(categories) > 0:
             fig = create_vertical_bar(categories, values, title_input, colors,
-                                     fig_width, fig_height, dpi, use_3d_effect, use_gradient)
+                                     fig_width, fig_height, dpi, use_3d_effect, use_gradient,
+                                     title_font_size, label_font_size, value_font_size)
             st.pyplot(fig)
             
             buf = save_figure(fig, download_format)
@@ -910,7 +924,8 @@ try:
     elif "Histogram" in viz_type:
         if len(data_values) > 0:
             fig = create_histogram(data_values, bins, title_input, colors,
-                                  fig_width, fig_height, dpi, use_gradient)
+                                  fig_width, fig_height, dpi, use_gradient,
+                                  title_font_size, label_font_size)
             st.pyplot(fig)
             
             # Tambahkan statistik deskriptif
@@ -939,7 +954,8 @@ try:
     elif "Pie" in viz_type:
         if len(labels) == len(values) and len(labels) > 0:
             fig = create_pie_chart(labels, values, title_input, colors,
-                                  fig_width, fig_height, dpi, use_3d_effect)
+                                  fig_width, fig_height, dpi, use_3d_effect,
+                                  title_font_size, label_font_size)
             st.pyplot(fig)
             
             buf = save_figure(fig, download_format)
@@ -955,7 +971,8 @@ try:
     elif "Grouped" in viz_type:
         if len(categories) > 0 and len(data_dict) > 0:
             fig = create_grouped_bar(categories, data_dict, title_input, colors,
-                                    fig_width, fig_height, dpi, use_gradient)
+                                    fig_width, fig_height, dpi, use_gradient,
+                                    title_font_size, label_font_size, value_font_size)
             st.pyplot(fig)
             
             buf = save_figure(fig, download_format)
@@ -971,7 +988,8 @@ try:
     elif "Stacked" in viz_type:
         if len(categories) > 0 and len(data_dict) > 0:
             fig = create_stacked_bar(categories, data_dict, title_input, colors,
-                                    fig_width, fig_height, dpi)
+                                    fig_width, fig_height, dpi,
+                                    title_font_size, label_font_size, value_font_size)
             st.pyplot(fig)
             
             buf = save_figure(fig, download_format)
