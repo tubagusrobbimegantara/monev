@@ -206,8 +206,7 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
         ax.text(angle, label_radius, label, ha='center', va='center',
                 fontsize=label_fontsize, weight='bold', color='#2c3e50',
                 bbox=dict(boxstyle='round,pad=0.6', facecolor='white', 
-                         edgecolor=colors[color_idx], linewidth=2.5, alpha=0.95,
-                         boxstyle='round,pad=0.6'))
+                         edgecolor=colors[color_idx], linewidth=2.5, alpha=0.95))
     
     # Grid dengan warna lebih soft
     ax.set_rlabel_position(30)
