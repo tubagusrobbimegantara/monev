@@ -202,8 +202,18 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
     # Grid dengan warna lebih soft
     ax.set_rlabel_position(30)
     ax.set_yticks(range(1, max_score + 1))
-    ax.set_yticklabels([str(i) for i in range(1, max_score + 1)],
-                       fontsize=11, color='#5a6c7d', weight='600')
+    
+    # Label skala profesional
+    scale_labels = {1: 'Kurang', 2: 'Cukup', 3: 'Baik', 4: 'Baik Sekali'}
+    ytick_labels = []
+    for i in range(1, max_score + 1):
+        if i in scale_labels:
+            ytick_labels.append(f'{i}\n({scale_labels[i]})')
+        else:
+            ytick_labels.append(str(i))
+    
+    ax.set_yticklabels(ytick_labels,
+                       fontsize=10, color='#5a6c7d', weight='600')
     ax.set_ylim(0, max_score * 1.15)
     
     # Grid styling
@@ -244,16 +254,20 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
     ax.plot(angles, target, '--', linewidth=2.5, alpha=0.7, 
             color='#e74c3c', label='Target', zorder=2)
     
-    # Judul dengan gradient effect
+    # Judul dengan gradient effect dan subtitle profesional
     plt.title(title, fontsize=20, weight='bold', 
              color='#2c3e50', pad=60,
              bbox=dict(boxstyle='round,pad=0.8', facecolor='white', 
                       edgecolor='#667eea', linewidth=3, alpha=0.9))
     
-    plt.legend(loc='upper right', bbox_to_anchor=(1.25, 1.18), 
+    # Tambahkan subtitle skala
+    fig.text(0.5, 0.92, 'Skala: 1=Kurang | 2=Cukup | 3=Baik | 4=Baik Sekali', 
+             ha='center', fontsize=11, style='italic', color='#7f8c8d')
+    
+    plt.legend(loc='upper right', bbox_to_anchor=(1.25, 1.15), 
               fontsize=13, frameon=True, shadow=True, fancybox=True)
     
-    plt.subplots_adjust(top=0.85)
+    plt.subplots_adjust(top=0.82)
     
     return fig
 
@@ -309,11 +323,24 @@ def create_horizontal_bar(categories, values, title, colors, width, height, dpi_
                          edgecolor='#667eea', linewidth=2.5))
     ax.set_xlim(0, max(values) * 1.2)
     
+    # Tambahkan keterangan skala
+    fig.text(0.5, 0.02, 'Skala: 1=Kurang | 2=Cukup | 3=Baik | 4=Baik Sekali', 
+             ha='center', fontsize=10, style='italic', color='#7f8c8d')
+    
     # Styling axes
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_linewidth(2)
     ax.spines['bottom'].set_linewidth(2)
+    
+    # Tambahkan grid untuk memudahkan pembacaan
+    ax.xaxis.grid(True, linestyle='--', alpha=0.3, color='#bdc3c7')
+    ax.set_axisbelow(True)
+    
+    # Set x-axis ticks untuk skala 1-4 jika data dalam range tersebut
+    if max(values) <= 5:
+        ax.set_xticks([1, 2, 3, 4])
+        ax.set_xticklabels(['1\n(Kurang)', '2\n(Cukup)', '3\n(Baik)', '4\n(Baik Sekali)'], fontsize=10)
     
     plt.tight_layout()
     return fig
@@ -368,6 +395,10 @@ def create_vertical_bar(categories, values, title, colors, width, height, dpi_va
                          edgecolor='#667eea', linewidth=2.5))
     ax.set_ylim(0, max(values) * 1.2)
     
+    # Tambahkan keterangan skala
+    fig.text(0.5, 0.02, 'Skala: 1=Kurang | 2=Cukup | 3=Baik | 4=Baik Sekali', 
+             ha='center', fontsize=10, style='italic', color='#7f8c8d')
+    
     plt.xticks(rotation=15, ha='right', fontsize=11)
     
     # Styling axes
@@ -375,6 +406,15 @@ def create_vertical_bar(categories, values, title, colors, width, height, dpi_va
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_linewidth(2)
     ax.spines['bottom'].set_linewidth(2)
+    
+    # Tambahkan grid untuk memudahkan pembacaan
+    ax.yaxis.grid(True, linestyle='--', alpha=0.3, color='#bdc3c7')
+    ax.set_axisbelow(True)
+    
+    # Set y-axis ticks untuk skala 1-4 jika data dalam range tersebut
+    if max(values) <= 5:
+        ax.set_yticks([1, 2, 3, 4])
+        ax.set_yticklabels(['1 (Kurang)', '2 (Cukup)', '3 (Baik)', '4 (Baik Sekali)'], fontsize=10)
     
     plt.tight_layout()
     return fig
@@ -677,8 +717,8 @@ with tab1:
         
         with col_input2:
             scores_input = st.text_area(
-                "Skor (pisahkan dengan koma)",
-                "4, 5, 3, 4, 5",
+                "Skor (pisahkan dengan koma)\n1=Kurang, 2=Cukup, 3=Baik, 4=Baik Sekali",
+                "3, 4, 3, 3, 4",
                 height=120
             )
         
@@ -768,8 +808,8 @@ with tab1:
         
         with col_input2:
             values_input = st.text_area(
-                "Nilai (pisahkan dengan koma)",
-                "85, 72, 68, 45",
+                "Nilai (pisahkan dengan koma)\n1=Kurang, 2=Cukup, 3=Baik, 4=Baik Sekali",
+                "4, 3, 3, 2",
                 height=100
             )
         
