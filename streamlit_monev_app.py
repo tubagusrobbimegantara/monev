@@ -136,9 +136,10 @@ with st.sidebar:
     
     st.markdown("### 🔤 Pengaturan Font")
     title_font_size = st.slider("Ukuran Font Judul", 14, 32, 20)
-    axis_title_font_size = st.slider("Ukuran Font Judul Axis", 10, 24, 13)
+    axis_title_font_size = st.slider("Ukuran Font Judul Axis", 10, 24, 14)
+    axis_tick_font_size = st.slider("Ukuran Font Nilai Axis", 8, 18, 11)
     label_font_size = st.slider("Ukuran Font Label", 8, 20, 13)
-    value_font_size = st.slider("Ukuran Font Nilai", 8, 20, 14)
+    value_font_size = st.slider("Ukuran Font Nilai Data", 8, 20, 14)
     
     st.markdown("---")
     st.markdown("### 💾 Download Options")
@@ -175,7 +176,7 @@ def get_gradient_cmap(color):
 
 # Fungsi untuk membuat Radar Chart dengan estetika tinggi
 def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, use_3d=True, use_grad=True, 
-                       title_fontsize=20, axis_title_fontsize=13, label_fontsize=13, value_fontsize=14):
+                       title_fontsize=20, axis_title_fontsize=14, axis_tick_fontsize=11, label_fontsize=13, value_fontsize=14):
     scores = [int(s) if isinstance(s, (int, float)) and s == int(s) else float(s) for s in scores]
     
     scores_plot = scores + scores[:1]
@@ -183,11 +184,11 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
     angles += angles[:1]
     
     # Gunakan style yang lebih modern
-    plt.style.use('seaborn-v0_8-darkgrid')
-    fig = plt.figure(figsize=(width, height), facecolor='#f8f9fa', dpi=dpi_val)
+    plt.style.use('seaborn-v0_8-whitegrid')
+    fig = plt.figure(figsize=(width, height), facecolor='#fafbfc', dpi=dpi_val)
     ax = plt.subplot(111, polar=True)
     
-    # Background gradient
+    # Background dengan warna lebih soft
     ax.set_facecolor('#ffffff')
     
     ax.set_theta_offset(np.pi / 2)
@@ -197,20 +198,22 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
     
     max_score = max(scores)
     
-    # Label dengan styling lebih baik - kurangi radius agar tidak terlalu jauh
-    label_radius = max_score * 1.18
+    # Label dengan styling lebih baik
+    label_radius = max_score * 1.20
     for i, (angle, label) in enumerate(zip(angles[:-1], labels)):
         color_idx = i % len(colors)
+        # Kotak label dengan border yang lebih halus
         ax.text(angle, label_radius, label, ha='center', va='center',
-                fontsize=label_fontsize, weight='bold', color=colors[color_idx],
-                bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
-                         edgecolor=colors[color_idx], linewidth=2, alpha=0.9))
+                fontsize=label_fontsize, weight='bold', color='#2c3e50',
+                bbox=dict(boxstyle='round,pad=0.6', facecolor='white', 
+                         edgecolor=colors[color_idx], linewidth=2.5, alpha=0.95,
+                         boxstyle='round,pad=0.6'))
     
     # Grid dengan warna lebih soft
     ax.set_rlabel_position(30)
     ax.set_yticks(range(1, max_score + 1))
     
-    # Label skala profesional
+    # Label skala profesional dengan font yang disesuaikan
     scale_labels = {1: 'Kurang', 2: 'Cukup', 3: 'Baik', 4: 'Baik Sekali'}
     ytick_labels = []
     for i in range(1, max_score + 1):
@@ -219,54 +222,55 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
         else:
             ytick_labels.append(str(i))
     
-    ax.set_yticklabels(ytick_labels,
-                       fontsize=10, color='#5a6c7d', weight='600')
+    ax.set_yticklabels(ytick_labels, fontsize=axis_tick_fontsize, color='#5a6c7d', weight='600')
     ax.set_ylim(0, max_score * 1.3)
     
-    # Grid styling
-    ax.grid(color='#d1d8e0', linestyle='--', linewidth=1.5, alpha=0.6)
-    ax.spines['polar'].set_color('#34495e')
-    ax.spines['polar'].set_linewidth(2)
+    # Grid styling yang lebih halus
+    ax.grid(color='#cbd5e0', linestyle='--', linewidth=1.2, alpha=0.7)
+    ax.spines['polar'].set_color('#4a5568')
+    ax.spines['polar'].set_linewidth(2.5)
     
     # Plot dengan gradient fill
     main_color = colors[0] if isinstance(colors, list) else colors
     
     if use_3d:
-        # Tambahkan shadow untuk efek 3D
-        shadow_offset = 0.1
-        ax.plot(angles, scores_plot, 'o-', linewidth=2, color='gray',
-                markersize=8, alpha=0.3, zorder=1)
-        ax.fill(angles, scores_plot, alpha=0.15, color='gray', zorder=1)
+        # Shadow untuk efek 3D yang lebih halus
+        shadow_offset = 0.05
+        ax.plot(angles, scores_plot, 'o-', linewidth=2.5, color='#a0aec0',
+                markersize=10, alpha=0.25, zorder=1)
+        ax.fill(angles, scores_plot, alpha=0.12, color='#718096', zorder=1)
     
-    # Plot utama
-    ax.plot(angles, scores_plot, 'o-', linewidth=3.5, color=main_color,
-            markersize=12, markerfacecolor='white', markeredgewidth=3,
+    # Plot utama dengan styling lebih modern
+    ax.plot(angles, scores_plot, 'o-', linewidth=4, color=main_color,
+            markersize=14, markerfacecolor='white', markeredgewidth=3.5,
             markeredgecolor=main_color, label='Skor Aktual', zorder=3)
     
     if use_grad:
-        ax.fill(angles, scores_plot, alpha=0.35, color=main_color, zorder=2)
+        ax.fill(angles, scores_plot, alpha=0.30, color=main_color, zorder=2)
     else:
-        ax.fill(angles, scores_plot, alpha=0.25, color=main_color, zorder=2)
+        ax.fill(angles, scores_plot, alpha=0.20, color=main_color, zorder=2)
     
     # Nilai di titik dengan styling lebih menarik
     for i, (angle, score) in enumerate(zip(angles[:-1], scores)):
         color_idx = i % len(colors)
         ax.text(angle, score, str(score), ha='center', va='center',
                 fontsize=value_fontsize, weight='bold', color='white',
-                bbox=dict(boxstyle='round,pad=0.4', facecolor=colors[color_idx],
-                         edgecolor='white', linewidth=2.5, alpha=0.95))
+                bbox=dict(boxstyle='circle,pad=0.4', facecolor=colors[color_idx],
+                         edgecolor='white', linewidth=3, alpha=0.95))
     
-    # Target line dengan styling
+    # Target line dengan styling lebih halus
     target = [max_score] * len(angles)
-    ax.plot(angles, target, '--', linewidth=2.5, alpha=0.7, 
-            color='#e74c3c', label='Target', zorder=2)
+    ax.plot(angles, target, '--', linewidth=3, alpha=0.6, 
+            color='#e53e3e', label='Target', zorder=2)
     
-    # Judul profesional TANPA border/boundary
+    # Judul profesional dengan spacing lebih baik
     plt.title(title, fontsize=title_fontsize, weight='bold', 
-             color='#2c3e50', pad=80)
+             color='#1a202c', pad=85, family='sans-serif')
     
-    plt.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), 
-              fontsize=13, frameon=True, shadow=True, fancybox=True)
+    # Legend dengan styling lebih modern
+    plt.legend(loc='upper right', bbox_to_anchor=(1.32, 1.12), 
+              fontsize=13, frameon=True, shadow=True, fancybox=True,
+              edgecolor='#cbd5e0', facecolor='white')
     
     plt.subplots_adjust(top=0.88, bottom=0.08, left=0.08, right=0.92)
     
@@ -274,8 +278,8 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
 
 # Fungsi untuk Bar Chart Horizontal dengan seaborn
 def create_horizontal_bar(categories, values, title, colors, width, height, dpi_val, use_3d=True, use_grad=True,
-                          title_fontsize=20, axis_title_fontsize=13, label_fontsize=13, value_fontsize=14):
-    fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#f8f9fa')
+                          title_fontsize=20, axis_title_fontsize=14, axis_tick_fontsize=11, label_fontsize=13, value_fontsize=14):
+    fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#fafbfc')
     ax.set_facecolor('#ffffff')
     
     # Gunakan seaborn barplot untuk styling lebih baik
@@ -287,48 +291,57 @@ def create_horizontal_bar(categories, values, title, colors, width, height, dpi_
     # Buat dataframe untuk seaborn
     df = pd.DataFrame({'Kategori': categories, 'Nilai': values})
     
-    # Barplot dengan seaborn - TANPA gradient yang membuat pattern aneh
+    # Barplot dengan seaborn - styling lebih modern
     bars = sns.barplot(data=df, y='Kategori', x='Nilai', palette=palette, 
-                       ax=ax, edgecolor='white', linewidth=2.5, alpha=0.85)
+                       ax=ax, edgecolor='white', linewidth=3, alpha=0.88,
+                       saturation=0.9)
     
     # Label nilai dengan styling menarik
     for i, (bar, val) in enumerate(zip(bars.patches, values)):
         color_idx = i % len(palette)
-        ax.text(bar.get_width() + max(values)*0.02, bar.get_y() + bar.get_height()/2,
+        ax.text(bar.get_width() + max(values)*0.015, bar.get_y() + bar.get_height()/2,
                 f'{val:.1f}', ha='left', va='center', fontsize=value_fontsize, weight='bold',
                 color=palette[color_idx],
-                bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
-                         edgecolor=palette[color_idx], linewidth=2))
+                bbox=dict(boxstyle='round,pad=0.4', facecolor='white',
+                         edgecolor=palette[color_idx], linewidth=2.5, alpha=0.95))
     
-    ax.set_xlabel('Nilai', fontsize=axis_title_fontsize, weight='bold', color='#2c3e50')
+    # Axis labels dengan font yang disesuaikan
+    ax.set_xlabel('Nilai', fontsize=axis_title_fontsize, weight='bold', color='#1a202c', labelpad=10)
     ax.set_ylabel('')
     
-    # Judul profesional TANPA border
-    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#2c3e50')
-    ax.set_xlim(0, max(values) * 1.2)
+    # Y-axis tick labels
+    ax.tick_params(axis='y', labelsize=axis_tick_fontsize, colors='#2d3748', width=2)
+    ax.tick_params(axis='x', labelsize=axis_tick_fontsize, colors='#2d3748', width=2)
     
-    # Styling axes
+    # Judul profesional
+    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#1a202c', family='sans-serif')
+    ax.set_xlim(0, max(values) * 1.22)
+    
+    # Styling axes yang lebih modern
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_linewidth(2)
-    ax.spines['bottom'].set_linewidth(2)
+    ax.spines['left'].set_linewidth(2.5)
+    ax.spines['left'].set_color('#4a5568')
+    ax.spines['bottom'].set_linewidth(2.5)
+    ax.spines['bottom'].set_color('#4a5568')
     
     # Tambahkan grid untuk memudahkan pembacaan
-    ax.xaxis.grid(True, linestyle='--', alpha=0.3, color='#bdc3c7')
+    ax.xaxis.grid(True, linestyle='--', alpha=0.4, color='#cbd5e0', linewidth=1.2)
     ax.set_axisbelow(True)
     
     # Set x-axis ticks untuk skala 1-4 jika data dalam range tersebut
     if max(values) <= 5:
         ax.set_xticks([1, 2, 3, 4])
-        ax.set_xticklabels(['1\n(Kurang)', '2\n(Cukup)', '3\n(Baik)', '4\n(Baik Sekali)'], fontsize=10)
+        ax.set_xticklabels(['1\n(Kurang)', '2\n(Cukup)', '3\n(Baik)', '4\n(Baik Sekali)'], 
+                          fontsize=axis_tick_fontsize)
     
     plt.tight_layout()
     return fig
 
 # Fungsi untuk Bar Chart Vertikal dengan seaborn
 def create_vertical_bar(categories, values, title, colors, width, height, dpi_val, use_3d=True, use_grad=True,
-                        title_fontsize=20, axis_title_fontsize=13, label_fontsize=13, value_fontsize=14):
-    fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#f8f9fa')
+                        title_fontsize=20, axis_title_fontsize=14, axis_tick_fontsize=11, label_fontsize=13, value_fontsize=14):
+    fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#fafbfc')
     ax.set_facecolor('#ffffff')
     
     if isinstance(colors, list):
@@ -338,129 +351,157 @@ def create_vertical_bar(categories, values, title, colors, width, height, dpi_va
     
     df = pd.DataFrame({'Kategori': categories, 'Nilai': values})
     
-    # Barplot dengan seaborn - TANPA gradient yang membuat pattern aneh
+    # Barplot dengan seaborn - styling lebih modern
     bars = sns.barplot(data=df, x='Kategori', y='Nilai', palette=palette,
-                       ax=ax, edgecolor='white', linewidth=2.5, alpha=0.85)
+                       ax=ax, edgecolor='white', linewidth=3, alpha=0.88,
+                       saturation=0.9)
     
     # Label nilai
     for i, (bar, val) in enumerate(zip(bars.patches, values)):
         color_idx = i % len(palette)
         height = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2., height + max(values)*0.02,
+        ax.text(bar.get_x() + bar.get_width()/2., height + max(values)*0.015,
                 f'{val:.1f}', ha='center', va='bottom', fontsize=value_fontsize, weight='bold',
                 color=palette[color_idx],
-                bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
-                         edgecolor=palette[color_idx], linewidth=2))
+                bbox=dict(boxstyle='round,pad=0.4', facecolor='white',
+                         edgecolor=palette[color_idx], linewidth=2.5, alpha=0.95))
     
-    ax.set_ylabel('Nilai', fontsize=axis_title_fontsize, weight='bold', color='#2c3e50')
+    # Axis labels dengan font yang disesuaikan
+    ax.set_ylabel('Nilai', fontsize=axis_title_fontsize, weight='bold', color='#1a202c', labelpad=10)
     ax.set_xlabel('')
     
-    # Judul profesional TANPA border
-    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#2c3e50')
-    ax.set_ylim(0, max(values) * 1.2)
+    # Axis tick labels
+    ax.tick_params(axis='y', labelsize=axis_tick_fontsize, colors='#2d3748', width=2)
+    ax.tick_params(axis='x', labelsize=axis_tick_fontsize, colors='#2d3748', width=2)
     
-    plt.xticks(rotation=15, ha='right', fontsize=11)
+    # Judul profesional
+    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#1a202c', family='sans-serif')
+    ax.set_ylim(0, max(values) * 1.22)
     
-    # Styling axes
+    plt.xticks(rotation=15, ha='right')
+    
+    # Styling axes yang lebih modern
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_linewidth(2)
-    ax.spines['bottom'].set_linewidth(2)
+    ax.spines['left'].set_linewidth(2.5)
+    ax.spines['left'].set_color('#4a5568')
+    ax.spines['bottom'].set_linewidth(2.5)
+    ax.spines['bottom'].set_color('#4a5568')
     
     # Tambahkan grid untuk memudahkan pembacaan
-    ax.yaxis.grid(True, linestyle='--', alpha=0.3, color='#bdc3c7')
+    ax.yaxis.grid(True, linestyle='--', alpha=0.4, color='#cbd5e0', linewidth=1.2)
     ax.set_axisbelow(True)
     
     # Set y-axis ticks untuk skala 1-4 jika data dalam range tersebut
     if max(values) <= 5:
         ax.set_yticks([1, 2, 3, 4])
-        ax.set_yticklabels(['1 (Kurang)', '2 (Cukup)', '3 (Baik)', '4 (Baik Sekali)'], fontsize=10)
+        ax.set_yticklabels(['1 (Kurang)', '2 (Cukup)', '3 (Baik)', '4 (Baik Sekali)'], 
+                          fontsize=axis_tick_fontsize)
     
     plt.tight_layout()
     return fig
 
 # Fungsi untuk Histogram dengan seaborn - PERBAIKAN
 def create_histogram(data, bins, title, colors, width, height, dpi_val, use_grad=True,
-                     title_fontsize=20, axis_title_fontsize=13, label_fontsize=13):
-    fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#f8f9fa')
+                     title_fontsize=20, axis_title_fontsize=14, axis_tick_fontsize=11, label_fontsize=13):
+    fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#fafbfc')
     ax.set_facecolor('#ffffff')
     
     color = colors[0] if isinstance(colors, list) else colors
     
     # Histogram dengan seaborn TANPA KDE (kurva distribusi)
     sns.histplot(data=data, bins=bins, color=color, 
-                edgecolor='white', linewidth=2.5, ax=ax, alpha=0.85, kde=False)
+                edgecolor='white', linewidth=3, ax=ax, alpha=0.88, kde=False,
+                line_kws={'linewidth': 0})
     
-    ax.set_xlabel('Nilai', fontsize=axis_title_fontsize, weight='bold', color='#2c3e50')
-    ax.set_ylabel('Frekuensi', fontsize=axis_title_fontsize, weight='bold', color='#2c3e50')
+    # Axis labels dengan font yang disesuaikan
+    ax.set_xlabel('Nilai', fontsize=axis_title_fontsize, weight='bold', color='#1a202c', labelpad=10)
+    ax.set_ylabel('Frekuensi', fontsize=axis_title_fontsize, weight='bold', color='#1a202c', labelpad=10)
     
-    # Judul profesional TANPA border
-    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#2c3e50')
+    # Axis tick labels
+    ax.tick_params(axis='both', labelsize=axis_tick_fontsize, colors='#2d3748', width=2)
     
-    # Styling axes
+    # Judul profesional
+    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#1a202c', family='sans-serif')
+    
+    # Styling axes yang lebih modern
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_linewidth(2)
-    ax.spines['bottom'].set_linewidth(2)
+    ax.spines['left'].set_linewidth(2.5)
+    ax.spines['left'].set_color('#4a5568')
+    ax.spines['bottom'].set_linewidth(2.5)
+    ax.spines['bottom'].set_color('#4a5568')
     
     # Tambahkan grid untuk memudahkan pembacaan
-    ax.yaxis.grid(True, linestyle='--', alpha=0.3, color='#bdc3c7')
+    ax.yaxis.grid(True, linestyle='--', alpha=0.4, color='#cbd5e0', linewidth=1.2)
     ax.set_axisbelow(True)
     
-    # Tambahkan statistik dengan garis vertikal
+    # Tambahkan statistik dengan garis vertikal yang lebih estetik
     mean_val = np.mean(data)
     median_val = np.median(data)
-    ax.axvline(mean_val, color='#e74c3c', linestyle='--', linewidth=2.5, 
-               label=f'Mean: {mean_val:.2f}', alpha=0.8)
-    ax.axvline(median_val, color='#27ae60', linestyle='--', linewidth=2.5, 
-               label=f'Median: {median_val:.2f}', alpha=0.8)
     
-    ax.legend(fontsize=12, frameon=True, shadow=True, fancybox=True)
+    # Mean line
+    ax.axvline(mean_val, color='#e53e3e', linestyle='--', linewidth=3, 
+               label=f'Mean: {mean_val:.2f}', alpha=0.75, zorder=5)
+    
+    # Median line
+    ax.axvline(median_val, color='#38a169', linestyle='--', linewidth=3, 
+               label=f'Median: {median_val:.2f}', alpha=0.75, zorder=5)
+    
+    # Legend dengan styling lebih modern
+    ax.legend(fontsize=13, frameon=True, shadow=True, fancybox=True,
+             edgecolor='#cbd5e0', facecolor='white', loc='upper right')
     
     plt.tight_layout()
     return fig
 
 # Fungsi untuk Pie Chart yang lebih cantik
 def create_pie_chart(labels, values, title, colors, width, height, dpi_val, use_3d=True,
-                     title_fontsize=20, axis_title_fontsize=13, label_fontsize=13):
-    fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#f8f9fa')
+                     title_fontsize=20, axis_title_fontsize=14, axis_tick_fontsize=11, label_fontsize=13):
+    fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#fafbfc')
     
     if isinstance(colors, list):
         palette = colors[:len(labels)]
     else:
         palette = sns.color_palette("husl", len(labels))
     
-    # Explode untuk efek
-    explode = [0.05] * len(labels)
-    explode[values.index(max(values))] = 0.15  # Explode nilai terbesar
+    # Explode untuk efek yang lebih halus
+    explode = [0.03] * len(labels)
+    explode[values.index(max(values))] = 0.12  # Explode nilai terbesar
     
-    # Shadow dan styling
+    # Shadow dan styling yang lebih modern
     wedges, texts, autotexts = ax.pie(values, labels=labels, autopct='%1.1f%%',
                                        startangle=90, colors=palette,
                                        explode=explode, shadow=use_3d,
-                                       textprops={'fontsize': label_fontsize, 'weight': 'bold'})
+                                       textprops={'fontsize': label_fontsize, 'weight': 'bold'},
+                                       wedgeprops={'linewidth': 3, 'edgecolor': 'white'},
+                                       pctdistance=0.85)
     
-    # Styling teks
+    # Styling teks persentase
     for autotext in autotexts:
         autotext.set_color('white')
-        autotext.set_fontsize(label_fontsize + 1)
+        autotext.set_fontsize(label_fontsize + 2)
         autotext.set_weight('bold')
+        autotext.set_path_effects([
+            plt.matplotlib.patheffects.withStroke(linewidth=3, foreground='black', alpha=0.3)
+        ])
     
+    # Styling label
     for text in texts:
         text.set_fontsize(label_fontsize)
         text.set_weight('bold')
-        text.set_color('#2c3e50')
+        text.set_color('#1a202c')
     
-    # Judul profesional TANPA border
-    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#2c3e50')
+    # Judul profesional
+    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#1a202c', family='sans-serif')
     
     plt.tight_layout()
     return fig
 
 # Fungsi untuk Grouped Bar Chart
 def create_grouped_bar(categories, data_dict, title, colors, width, height, dpi_val, use_grad=True,
-                       title_fontsize=20, axis_title_fontsize=13, label_fontsize=13, value_fontsize=14):
-    fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#f8f9fa')
+                       title_fontsize=20, axis_title_fontsize=14, axis_tick_fontsize=11, label_fontsize=13, value_fontsize=14):
+    fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#fafbfc')
     ax.set_facecolor('#ffffff')
     
     if isinstance(colors, list):
@@ -474,38 +515,50 @@ def create_grouped_bar(categories, data_dict, title, colors, width, height, dpi_
     for i, (key, values) in enumerate(data_dict.items()):
         offset = (i - len(data_dict)/2) * width_bar + width_bar/2
         bars = ax.bar(x + offset, values, width_bar, label=key,
-                     color=palette[i], edgecolor='white', linewidth=2)
+                     color=palette[i], edgecolor='white', linewidth=2.5, alpha=0.88)
         
-        # Label nilai
+        # Label nilai dengan styling lebih baik
         for bar in bars:
             height = bar.get_height()
             ax.text(bar.get_x() + bar.get_width()/2., height,
                    f'{height:.1f}', ha='center', va='bottom',
-                   fontsize=value_fontsize - 3, weight='bold', color=palette[i])
+                   fontsize=value_fontsize - 2, weight='bold', color=palette[i])
     
-    ax.set_xlabel('Kategori', fontsize=axis_title_fontsize, weight='bold', color='#2c3e50')
-    ax.set_ylabel('Nilai', fontsize=axis_title_fontsize, weight='bold', color='#2c3e50')
+    # Axis labels dengan font yang disesuaikan
+    ax.set_xlabel('Kategori', fontsize=axis_title_fontsize, weight='bold', color='#1a202c', labelpad=10)
+    ax.set_ylabel('Nilai', fontsize=axis_title_fontsize, weight='bold', color='#1a202c', labelpad=10)
     
-    # Judul profesional TANPA border
-    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#2c3e50')
+    # Axis tick labels
+    ax.tick_params(axis='both', labelsize=axis_tick_fontsize, colors='#2d3748', width=2)
+    
+    # Judul profesional
+    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#1a202c', family='sans-serif')
     ax.set_xticks(x)
     ax.set_xticklabels(categories, rotation=15, ha='right')
     
-    ax.legend(fontsize=12, frameon=True, shadow=True, fancybox=True)
+    # Legend dengan styling lebih modern
+    ax.legend(fontsize=13, frameon=True, shadow=True, fancybox=True,
+             edgecolor='#cbd5e0', facecolor='white')
     
-    # Styling axes
+    # Styling axes yang lebih modern
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_linewidth(2)
-    ax.spines['bottom'].set_linewidth(2)
+    ax.spines['left'].set_linewidth(2.5)
+    ax.spines['left'].set_color('#4a5568')
+    ax.spines['bottom'].set_linewidth(2.5)
+    ax.spines['bottom'].set_color('#4a5568')
+    
+    # Grid
+    ax.yaxis.grid(True, linestyle='--', alpha=0.4, color='#cbd5e0', linewidth=1.2)
+    ax.set_axisbelow(True)
     
     plt.tight_layout()
     return fig
 
 # Fungsi untuk Stacked Bar Chart
 def create_stacked_bar(categories, data_dict, title, colors, width, height, dpi_val,
-                       title_fontsize=20, axis_title_fontsize=13, label_fontsize=13, value_fontsize=14):
-    fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#f8f9fa')
+                       title_fontsize=20, axis_title_fontsize=14, axis_tick_fontsize=11, label_fontsize=13, value_fontsize=14):
+    fig, ax = plt.subplots(figsize=(width, height), dpi=dpi_val, facecolor='#fafbfc')
     ax.set_facecolor('#ffffff')
     
     if isinstance(colors, list):
@@ -517,32 +570,48 @@ def create_stacked_bar(categories, data_dict, title, colors, width, height, dpi_
     
     for i, (key, values) in enumerate(data_dict.items()):
         bars = ax.bar(categories, values, label=key, bottom=bottom,
-                     color=palette[i], edgecolor='white', linewidth=2)
+                     color=palette[i], edgecolor='white', linewidth=2.5, alpha=0.88)
         
         # Label nilai di tengah bar
         for j, (bar, val) in enumerate(zip(bars, values)):
             if val > 0:
                 ax.text(bar.get_x() + bar.get_width()/2.,
                        bottom[j] + val/2, f'{val:.0f}',
-                       ha='center', va='center', fontsize=value_fontsize - 2,
-                       weight='bold', color='white')
+                       ha='center', va='center', fontsize=value_fontsize - 1,
+                       weight='bold', color='white',
+                       path_effects=[
+                           plt.matplotlib.patheffects.withStroke(linewidth=2, foreground='black', alpha=0.3)
+                       ])
         
         bottom += values
     
-    ax.set_xlabel('Kategori', fontsize=axis_title_fontsize, weight='bold', color='#2c3e50')
-    ax.set_ylabel('Nilai', fontsize=axis_title_fontsize, weight='bold', color='#2c3e50')
+    # Axis labels dengan font yang disesuaikan
+    ax.set_xlabel('Kategori', fontsize=axis_title_fontsize, weight='bold', color='#1a202c', labelpad=10)
+    ax.set_ylabel('Nilai', fontsize=axis_title_fontsize, weight='bold', color='#1a202c', labelpad=10)
     
-    # Judul profesional TANPA border
-    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#2c3e50')
+    # Axis tick labels
+    ax.tick_params(axis='both', labelsize=axis_tick_fontsize, colors='#2d3748', width=2)
+    
+    # Judul profesional
+    ax.set_title(title, fontsize=title_fontsize, weight='bold', pad=25, color='#1a202c', family='sans-serif')
     
     plt.xticks(rotation=15, ha='right')
-    ax.legend(fontsize=12, frameon=True, shadow=True, fancybox=True)
     
-    # Styling axes
+    # Legend dengan styling lebih modern
+    ax.legend(fontsize=13, frameon=True, shadow=True, fancybox=True,
+             edgecolor='#cbd5e0', facecolor='white')
+    
+    # Styling axes yang lebih modern
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_linewidth(2)
-    ax.spines['bottom'].set_linewidth(2)
+    ax.spines['left'].set_linewidth(2.5)
+    ax.spines['left'].set_color('#4a5568')
+    ax.spines['bottom'].set_linewidth(2.5)
+    ax.spines['bottom'].set_color('#4a5568')
+    
+    # Grid
+    ax.yaxis.grid(True, linestyle='--', alpha=0.4, color='#cbd5e0', linewidth=1.2)
+    ax.set_axisbelow(True)
     
     plt.tight_layout()
     return fig
@@ -874,7 +943,7 @@ try:
         if len(labels) == len(values) and len(labels) > 0:
             fig = create_radar_chart(labels, values, title_input, colors, 
                                     fig_width, fig_height, dpi, use_3d_effect, use_gradient,
-                                    title_font_size, axis_title_font_size, label_font_size, value_font_size)
+                                    title_font_size, axis_title_font_size, axis_tick_font_size, label_font_size, value_font_size)
             st.pyplot(fig)
             
             buf = save_figure(fig, download_format)
@@ -891,7 +960,7 @@ try:
         if len(categories) == len(values) and len(categories) > 0:
             fig = create_horizontal_bar(categories, values, title_input, colors,
                                        fig_width, fig_height, dpi, use_3d_effect, use_gradient,
-                                       title_font_size, axis_title_font_size, label_font_size, value_font_size)
+                                       title_font_size, axis_title_font_size, axis_tick_font_size, label_font_size, value_font_size)
             st.pyplot(fig)
             
             buf = save_figure(fig, download_format)
@@ -908,7 +977,7 @@ try:
         if len(categories) == len(values) and len(categories) > 0:
             fig = create_vertical_bar(categories, values, title_input, colors,
                                      fig_width, fig_height, dpi, use_3d_effect, use_gradient,
-                                     title_font_size, axis_title_font_size, label_font_size, value_font_size)
+                                     title_font_size, axis_title_font_size, axis_tick_font_size, label_font_size, value_font_size)
             st.pyplot(fig)
             
             buf = save_figure(fig, download_format)
@@ -925,7 +994,7 @@ try:
         if len(data_values) > 0:
             fig = create_histogram(data_values, bins, title_input, colors,
                                   fig_width, fig_height, dpi, use_gradient,
-                                  title_font_size, axis_title_font_size, label_font_size)
+                                  title_font_size, axis_title_font_size, axis_tick_font_size, label_font_size)
             st.pyplot(fig)
             
             # Tambahkan statistik deskriptif
@@ -955,7 +1024,7 @@ try:
         if len(labels) == len(values) and len(labels) > 0:
             fig = create_pie_chart(labels, values, title_input, colors,
                                   fig_width, fig_height, dpi, use_3d_effect,
-                                  title_font_size, axis_title_font_size, label_font_size)
+                                  title_font_size, axis_title_font_size, axis_tick_font_size, label_font_size)
             st.pyplot(fig)
             
             buf = save_figure(fig, download_format)
@@ -972,7 +1041,7 @@ try:
         if len(categories) > 0 and len(data_dict) > 0:
             fig = create_grouped_bar(categories, data_dict, title_input, colors,
                                     fig_width, fig_height, dpi, use_gradient,
-                                    title_font_size, axis_title_font_size, label_font_size, value_font_size)
+                                    title_font_size, axis_title_font_size, axis_tick_font_size, label_font_size, value_font_size)
             st.pyplot(fig)
             
             buf = save_figure(fig, download_format)
@@ -989,7 +1058,7 @@ try:
         if len(categories) > 0 and len(data_dict) > 0:
             fig = create_stacked_bar(categories, data_dict, title_input, colors,
                                     fig_width, fig_height, dpi,
-                                    title_font_size, axis_title_font_size, label_font_size, value_font_size)
+                                    title_font_size, axis_title_font_size, axis_tick_font_size, label_font_size, value_font_size)
             st.pyplot(fig)
             
             buf = save_figure(fig, download_format)
