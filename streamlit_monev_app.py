@@ -52,6 +52,18 @@ st.markdown('<div class="main-header">📊 Dashboard Visualisasi Monitoring & Ev
 # Sidebar
 with st.sidebar:
     st.image("https://via.placeholder.com/300x100/3498db/ffffff?text=MONEV+Dashboard", use_container_width=True)
+    
+    # Credit section
+    st.markdown("""
+    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 1rem; border-radius: 10px; margin-bottom: 1rem;'>
+        <p style='color: white; font-size: 0.85rem; margin: 0; text-align: center;'>
+            <strong>👨‍💻 Developed by</strong><br>
+            Tubagus Robbi Megantara
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
     st.markdown("### 🎯 Pilih Jenis Visualisasi")
     
     viz_type = st.selectbox(
@@ -101,6 +113,9 @@ def get_color_palette(scheme, custom=None):
 
 # Fungsi untuk membuat Radar Chart
 def create_radar_chart(labels, scores, title, color, width, height, dpi_val):
+    # Convert scores to list if needed and ensure numeric
+    scores = [int(s) if isinstance(s, (int, float)) and s == int(s) else float(s) for s in scores]
+    
     scores_plot = scores + scores[:1]
     angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
     angles += angles[:1]
@@ -321,7 +336,7 @@ with col1:
     st.markdown('<div class="sub-header">📝 Input Data</div>', unsafe_allow_html=True)
 
 # Tab untuk input method
-tab1, tab2 = st.tabs(["📋 Input Manual", "📁 Upload CSV"])
+tab1, tab2 = st.tabs(["📋 Input Manual", "📁 Upload Excel"])
 
 with tab1:
     if "Radar" in viz_type or "Pie" in viz_type:
@@ -342,11 +357,19 @@ with tab1:
                 height=100
             )
         
-        labels = [l.strip() for l in labels_input.split(',')]
+        labels = [l.strip() for l in labels_input.split(',') if l.strip()]
         try:
-            values = [float(v.strip()) for v in values_input.split(',')]
-        except:
-            st.error("❌ Nilai harus berupa angka!")
+            values = []
+            for v in values_input.split(','):
+                v = v.strip()
+                if v:  # Only process non-empty strings
+                    # Handle both integer and float
+                    if '.' in v:
+                        values.append(float(v))
+                    else:
+                        values.append(int(v))
+        except ValueError as e:
+            st.error(f"❌ Nilai harus berupa angka! Error: {str(e)}")
             values = []
     
     elif "Histogram" in viz_type:
@@ -359,9 +382,16 @@ with tab1:
         bins = st.slider("Jumlah Bins", 5, 30, 10)
         
         try:
-            data_values = [float(v.strip()) for v in data_input.split(',')]
-        except:
-            st.error("❌ Data harus berupa angka!")
+            data_values = []
+            for v in data_input.split(','):
+                v = v.strip()
+                if v:
+                    if '.' in v:
+                        data_values.append(float(v))
+                    else:
+                        data_values.append(int(v))
+        except ValueError as e:
+            st.error(f"❌ Data harus berupa angka! Error: {str(e)}")
             data_values = []
     
     elif "Grouped" in viz_type or "Stacked" in viz_type:
@@ -383,11 +413,19 @@ with tab1:
                 key=f"values_{i}"
             )
             try:
-                data_dict[group_name] = [float(v.strip()) for v in group_values.split(',')]
-            except:
-                st.error(f"❌ Nilai untuk {group_name} harus berupa angka!")
+                parsed_values = []
+                for v in group_values.split(','):
+                    v = v.strip()
+                    if v:
+                        if '.' in v:
+                            parsed_values.append(float(v))
+                        else:
+                            parsed_values.append(int(v))
+                data_dict[group_name] = parsed_values
+            except ValueError as e:
+                st.error(f"❌ Nilai untuk {group_name} harus berupa angka! Error: {str(e)}")
         
-        categories = [c.strip() for c in categories_input.split(',')]
+        categories = [c.strip() for c in categories_input.split(',') if c.strip()]
     
     else:  # Bar charts
         st.markdown("**Masukkan kategori dan nilai (pisahkan dengan koma)**")
@@ -407,19 +445,29 @@ with tab1:
                 height=100
             )
         
-        categories = [c.strip() for c in categories_input.split(',')]
+        categories = [c.strip() for c in categories_input.split(',') if c.strip()]
         try:
-            values = [float(v.strip()) for v in values_input.split(',')]
-        except:
-            st.error("❌ Nilai harus berupa angka!")
+            values = []
+            for v in values_input.split(','):
+                v = v.strip()
+                if v:
+                    if '.' in v:
+                        values.append(float(v))
+                    else:
+                        values.append(int(v))
+        except ValueError as e:
+            st.error(f"❌ Nilai harus berupa angka! Error: {str(e)}")
             values = []
 
 with tab2:
-    uploaded_file = st.file_uploader("Upload file CSV", type=['csv'])
+    uploaded_file = st.file_uploader("Upload file Excel (.xlsx atau .xls)", type=['xlsx', 'xls'])
     
     if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file)
-        st.dataframe(df, use_container_width=True)
+        try:
+            # Read Excel file
+            df = pd.read_excel(uploaded_file)
+            st.success(f"✅ File berhasil diupload! ({len(df)} baris, {len(df.columns)} kolom)")
+            st.dataframe(df, use_container_width=True)
         
         if "Radar" in viz_type or "Pie" in viz_type or "Bar" in viz_type:
             col_label = st.selectbox("Pilih kolom untuk Label", df.columns)
@@ -440,6 +488,10 @@ with tab2:
             
             categories = df[col_cat].tolist()
             data_dict = {col: df[col].tolist() for col in value_cols}
+        
+        except Exception as e:
+            st.error(f"❌ Error membaca file Excel: {str(e)}")
+            st.info("💡 Pastikan file Excel Anda memiliki header di baris pertama dan data dalam format yang benar.")
 
 # Pengaturan tambahan
 st.markdown('<div class="sub-header">🎨 Pengaturan Visualisasi</div>', unsafe_allow_html=True)
@@ -577,7 +629,16 @@ except Exception as e:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #7f8c8d; padding: 1rem;'>
-    <p><strong>Dashboard Visualisasi Monitoring & Evaluasi</strong></p>
+    <p><strong>📊 Dashboard Visualisasi Monitoring & Evaluasi</strong></p>
     <p>Dibuat dengan ❤️ menggunakan Streamlit & Matplotlib</p>
+    <p style='margin-top: 1rem; font-size: 0.9rem;'>
+        <strong>Developed by:</strong> Tubagus Robbi Megantara<br>
+        <a href='mailto:tubagusrobbimegantara@gmail.com' style='color: #3498db; text-decoration: none;'>
+            📧 tubagusrobbimegantara@gmail.com
+        </a>
+    </p>
+    <p style='margin-top: 0.5rem; font-size: 0.8rem; color: #95a5a6;'>
+        © 2025 - Dashboard Monev | Version 1.0
+    </p>
 </div>
 """, unsafe_allow_html=True)
