@@ -285,27 +285,9 @@ def create_horizontal_bar(categories, values, title, colors, width, height, dpi_
     # Buat dataframe untuk seaborn
     df = pd.DataFrame({'Kategori': categories, 'Nilai': values})
     
-    # Barplot dengan seaborn
+    # Barplot dengan seaborn - TANPA gradient yang membuat pattern aneh
     bars = sns.barplot(data=df, y='Kategori', x='Nilai', palette=palette, 
-                       ax=ax, edgecolor='white', linewidth=2.5)
-    
-    # Tambahkan gradient jika diinginkan
-    if use_grad:
-        for i, bar in enumerate(bars.patches):
-            color = palette[i] if i < len(palette) else palette[0]
-            # Gradient dari kiri ke kanan
-            gradient = np.linspace(0.4, 1, 100)
-            for j, alpha in enumerate(gradient):
-                x = bar.get_x() + j * bar.get_width() / 100
-                width_segment = bar.get_width() / 100
-                ax.barh(bar.get_y(), width_segment, left=x, 
-                       height=bar.get_height(), color=color, alpha=alpha)
-    
-    # Shadow effect
-    if use_3d:
-        for bar in bars.patches:
-            shadow = Shadow(bar, 0.02, -0.02, alpha=0.3)
-            ax.add_patch(shadow)
+                       ax=ax, edgecolor='white', linewidth=2.5, alpha=0.85)
     
     # Label nilai dengan styling menarik
     for i, (bar, val) in enumerate(zip(bars.patches, values)):
@@ -322,10 +304,6 @@ def create_horizontal_bar(categories, values, title, colors, width, height, dpi_
                 bbox=dict(boxstyle='round,pad=0.7', facecolor='white',
                          edgecolor='#667eea', linewidth=2.5))
     ax.set_xlim(0, max(values) * 1.2)
-    
-    # Tambahkan keterangan skala
-    fig.text(0.5, 0.02, 'Skala: 1=Kurang | 2=Cukup | 3=Baik | 4=Baik Sekali', 
-             ha='center', fontsize=10, style='italic', color='#7f8c8d')
     
     # Styling axes
     ax.spines['top'].set_visible(False)
@@ -357,26 +335,9 @@ def create_vertical_bar(categories, values, title, colors, width, height, dpi_va
     
     df = pd.DataFrame({'Kategori': categories, 'Nilai': values})
     
-    # Barplot dengan seaborn
+    # Barplot dengan seaborn - TANPA gradient yang membuat pattern aneh
     bars = sns.barplot(data=df, x='Kategori', y='Nilai', palette=palette,
-                       ax=ax, edgecolor='white', linewidth=2.5)
-    
-    # Gradient fill
-    if use_grad:
-        for i, bar in enumerate(bars.patches):
-            color = palette[i] if i < len(palette) else palette[0]
-            gradient = np.linspace(0.4, 1, 100)
-            for j, alpha in enumerate(gradient):
-                y = bar.get_y() + j * bar.get_height() / 100
-                height_segment = bar.get_height() / 100
-                ax.bar(bar.get_x(), height_segment, bottom=y,
-                      width=bar.get_width(), color=color, alpha=alpha)
-    
-    # Shadow effect
-    if use_3d:
-        for bar in bars.patches:
-            shadow = Shadow(bar, 0.02, -0.02, alpha=0.3)
-            ax.add_patch(shadow)
+                       ax=ax, edgecolor='white', linewidth=2.5, alpha=0.85)
     
     # Label nilai
     for i, (bar, val) in enumerate(zip(bars.patches, values)):
@@ -394,10 +355,6 @@ def create_vertical_bar(categories, values, title, colors, width, height, dpi_va
                 bbox=dict(boxstyle='round,pad=0.7', facecolor='white',
                          edgecolor='#667eea', linewidth=2.5))
     ax.set_ylim(0, max(values) * 1.2)
-    
-    # Tambahkan keterangan skala
-    fig.text(0.5, 0.02, 'Skala: 1=Kurang | 2=Cukup | 3=Baik | 4=Baik Sekali', 
-             ha='center', fontsize=10, style='italic', color='#7f8c8d')
     
     plt.xticks(rotation=15, ha='right', fontsize=11)
     
