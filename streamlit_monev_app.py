@@ -468,26 +468,26 @@ with tab2:
             df = pd.read_excel(uploaded_file)
             st.success(f"✅ File berhasil diupload! ({len(df)} baris, {len(df.columns)} kolom)")
             st.dataframe(df, use_container_width=True)
-        
-        if "Radar" in viz_type or "Pie" in viz_type or "Bar" in viz_type:
-            col_label = st.selectbox("Pilih kolom untuk Label", df.columns)
-            col_value = st.selectbox("Pilih kolom untuk Nilai", df.columns)
             
-            labels = df[col_label].tolist()
-            values = df[col_value].tolist()
-        
-        elif "Histogram" in viz_type:
-            col_data = st.selectbox("Pilih kolom untuk Data", df.columns)
-            data_values = df[col_data].tolist()
-            bins = st.slider("Jumlah Bins", 5, 30, 10)
-        
-        elif "Grouped" in viz_type or "Stacked" in viz_type:
-            col_cat = st.selectbox("Pilih kolom untuk Kategori", df.columns)
-            value_cols = st.multiselect("Pilih kolom untuk Nilai", 
-                                       [c for c in df.columns if c != col_cat])
+            if "Radar" in viz_type or "Pie" in viz_type or "Bar" in viz_type:
+                col_label = st.selectbox("Pilih kolom untuk Label", df.columns)
+                col_value = st.selectbox("Pilih kolom untuk Nilai", df.columns)
+                
+                labels = df[col_label].tolist()
+                values = df[col_value].tolist()
             
-            categories = df[col_cat].tolist()
-            data_dict = {col: df[col].tolist() for col in value_cols}
+            elif "Histogram" in viz_type:
+                col_data = st.selectbox("Pilih kolom untuk Data", df.columns)
+                data_values = df[col_data].tolist()
+                bins = st.slider("Jumlah Bins", 5, 30, 10)
+            
+            elif "Grouped" in viz_type or "Stacked" in viz_type:
+                col_cat = st.selectbox("Pilih kolom untuk Kategori", df.columns)
+                value_cols = st.multiselect("Pilih kolom untuk Nilai", 
+                                           [c for c in df.columns if c != col_cat])
+                
+                categories = df[col_cat].tolist()
+                data_dict = {col: df[col].tolist() for col in value_cols}
         
         except Exception as e:
             st.error(f"❌ Error membaca file Excel: {str(e)}")
