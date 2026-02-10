@@ -10,6 +10,7 @@ import io
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.patches import Shadow, FancyBboxPatch
 import matplotlib.patches as mpatches
+import matplotlib.patheffects as path_effects
 
 # Konfigurasi halaman
 st.set_page_config(
