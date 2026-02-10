@@ -260,9 +260,7 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
              bbox=dict(boxstyle='round,pad=0.8', facecolor='white', 
                       edgecolor='#667eea', linewidth=3, alpha=0.9))
     
-    # Tambahkan subtitle skala
-    fig.text(0.5, 0.92, 'Skala: 1=Kurang | 2=Cukup | 3=Baik | 4=Baik Sekali', 
-             ha='center', fontsize=11, style='italic', color='#7f8c8d')
+
     
     plt.legend(loc='upper right', bbox_to_anchor=(1.25, 1.15), 
               fontsize=13, frameon=True, shadow=True, fancybox=True)
