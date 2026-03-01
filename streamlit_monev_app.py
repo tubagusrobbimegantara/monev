@@ -224,7 +224,7 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
     
     # Grid radial (garis sumbu dari pusat) - lebih halus
     for angle in angles[:-1]:
-        ax.plot([angle, angle], [0, max_val], color=grid_light, linewidth=1, zorder=0, alpha=0.5)
+        ax.plot([angle, angle], [0, max_val], color=grid_light, linewidth=1, zorder=0, alpha=0.2)
 
     # 4. LABEL SUMBU (KATEGORI) - Professional Typography dengan Multi-line Support
     ax.set_xticks(angles[:-1])
