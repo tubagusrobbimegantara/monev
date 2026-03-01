@@ -173,6 +173,7 @@ def get_gradient_cmap(color):
     return cmap
 
 # Fungsi untuk membuat Radar Chart dengan estetika profesional tingkat tinggi
+# Fungsi untuk membuat Radar Chart dengan estetika profesional tingkat tinggi
 def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, use_3d=True, use_grad=True, 
                        title_fontsize=20, label_fontsize=13, value_fontsize=14):
     
