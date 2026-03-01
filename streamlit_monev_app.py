@@ -172,107 +172,115 @@ def get_gradient_cmap(color):
     cmap = LinearSegmentedColormap.from_list('custom', colors, N=n_bins)
     return cmap
 
-# Fungsi untuk membuat Radar Chart dengan estetika tinggi
 def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, use_3d=True, use_grad=True, 
-                       title_fontsize=20, label_fontsize=13, value_fontsize=14):
-    scores = [int(s) if isinstance(s, (int, float)) and s == int(s) else float(s) for s in scores]
+                        title_fontsize=20, label_fontsize=12, value_fontsize=12):
     
-    scores_plot = scores + scores[:1]
-    angles = np.linspace(0, 2 * np.pi, len(labels), endpoint=False).tolist()
+    # 1. SETUP DATA
+    # Pastikan data float dan loop tertutup
+    scores = [float(s) for s in scores]
+    num_vars = len(labels)
+    
+    # Sudut untuk setiap sumbu
+    angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
+    
+    # Menutup loop grafik (titik akhir kembali ke titik awal)
+    scores += scores[:1]
     angles += angles[:1]
     
-    # Gunakan style yang lebih modern
-    plt.style.use('seaborn-v0_8-darkgrid')
-    fig = plt.figure(figsize=(width, height), facecolor='#f8f9fa', dpi=dpi_val)
-    ax = plt.subplot(111, polar=True)
+    # 2. SETUP FIGURE & AXIS
+    # Gunakan style white yang sangat bersih untuk laporan
+    plt.style.use('default') 
+    fig, ax = plt.subplots(figsize=(width, height), subplot_kw=dict(polar=True), dpi=dpi_val)
     
-    # Background gradient
-    ax.set_facecolor('#ffffff')
+    # Warna Background Putih Bersih
+    fig.patch.set_facecolor('white')
+    ax.set_facecolor('white') # F8F9FA jika ingin sedikit abu, tapi putih lebih standar laporan
     
+    # Putar agar label pertama ada di atas (jam 12)
     ax.set_theta_offset(np.pi / 2)
     ax.set_theta_direction(-1)
+    
+    # 3. CUSTOM GRID (POLYGON STYLE)
+    # Matplotlib default polar adalah lingkaran. Kita ganti jadi polygon manual
+    # Hapus grid dan spine bawaan
+    ax.xaxis.grid(False) # Grid radial (garis ke pusat)
+    ax.yaxis.grid(False) # Grid konsentris (lingkaran)
+    ax.spines['polar'].set_visible(False)
+    
+    # Gambar Grid Polygon Manual (misal level 1, 2, 3, 4)
+    max_val = 4 # Skala Monev biasanya max 4
+    grid_color = '#e2e8f0' # Abu-abu sangat muda
+    
+    for i in range(1, max_val + 1):
+        # Buat bentuk polygon untuk setiap level grid
+        grid_values = [i] * (num_vars + 1)
+        ax.plot(angles, grid_values, color=grid_color, linewidth=1, linestyle='-', zorder=0)
+        
+    # Gambar Garis Sumbu (Spokes)
+    for angle in angles[:-1]:
+        ax.plot([angle, angle], [0, max_val], color=grid_color, linewidth=1, zorder=0)
+
+    # 4. LABEL SUMBU (KATEGORI)
+    # Atur posisi label kategori
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels([])
     
-    max_score = max(scores)
+    # Bungkus label yang terlalu panjang (optional)
+    wrapped_labels = [label.replace(' ', '\n') if len(label) > 15 else label for label in labels]
+    ax.set_xticklabels(wrapped_labels, size=label_fontsize, color='#334155', weight='bold')
     
-    # Label dengan styling lebih baik - kurangi radius agar tidak terlalu jauh
-    label_radius = max_score * 1.18
-    for i, (angle, label) in enumerate(zip(angles[:-1], labels)):
-        color_idx = i % len(colors)
-        ax.text(angle, label_radius, label, ha='center', va='center',
-                fontsize=label_fontsize, weight='bold', color=colors[color_idx],
-                bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
-                         edgecolor=colors[color_idx], linewidth=2, alpha=0.9))
-    
-    # Grid dengan warna lebih soft
-    ax.set_rlabel_position(30)
-    ax.set_yticks(range(1, max_score + 1))
-    
-    # Label skala profesional
-    scale_labels = {1: 'Kurang', 2: 'Cukup', 3: 'Baik', 4: 'Baik Sekali'}
-    ytick_labels = []
-    for i in range(1, max_score + 1):
-        if i in scale_labels:
-            ytick_labels.append(f'{i}\n({scale_labels[i]})')
-        else:
-            ytick_labels.append(str(i))
-    
-   # ax.set_yticklabels(ytick_labels,
-   #                    fontsize=10, color='#5a6c7d', weight='600')
-    ax.set_ylim(0, max_score * 1.3)
-    
-    # Grid styling
-    ax.grid(color='#d1d8e0', linestyle='--', linewidth=1.5, alpha=0.6)
-    ax.spines['polar'].set_color('#34495e')
-    ax.spines['polar'].set_linewidth(2)
-    
-    # Plot dengan gradient fill
+    # Padding label agar tidak menempel grafik
+    ax.tick_params(axis='x', pad=25)
+
+    # 5. LABEL Y-AXIS (SKALA)
+    # Tampilkan angka skala hanya di satu sisi (axis utara) agar bersih
+    ax.set_rlabel_position(0)
+    plt.yticks([1, 2, 3, 4], ["1", "2", "3", "4"], color="#94a3b8", size=10)
+    plt.ylim(0, max_val + 0.5)
+
+    # 6. PLOT DATA (CAPAIAN)
     main_color = colors[0] if isinstance(colors, list) else colors
     
-    if use_3d:
-        # Tambahkan shadow untuk efek 3D
-        shadow_offset = 0.1
-        ax.plot(angles, scores_plot, 'o-', linewidth=2, color='gray',
-                markersize=8, alpha=0.3, zorder=1)
-        ax.fill(angles, scores_plot, alpha=0.15, color='gray', zorder=1)
+    # Plot Garis Data
+    ax.plot(angles, scores, color=main_color, linewidth=3, linestyle='-', label='Capaian', zorder=10)
     
-    # Plot utama
-    ax.plot(angles, scores_plot, 'o-', linewidth=3.5, color=main_color,
-            markersize=12, markerfacecolor='white', markeredgewidth=3,
-            markeredgecolor=main_color, label='Skor Aktual', zorder=3)
-    
+    # Fill Area (Gradient like effect)
     if use_grad:
-        ax.fill(angles, scores_plot, alpha=0.35, color=main_color, zorder=2)
+        ax.fill(angles, scores, color=main_color, alpha=0.25, zorder=9)
     else:
-        ax.fill(angles, scores_plot, alpha=0.25, color=main_color, zorder=2)
+        ax.fill(angles, scores, color=main_color, alpha=0.1, zorder=9)
+
+    # Marker Titik Data
+    ax.scatter(angles, scores, color='white', edgecolor=main_color, s=100, linewidth=2.5, zorder=11)
+
+    # 7. TARGET LINE (PENTING UNTUK LAPORAN)
+    # Biasanya ada target standar (misal 3.0 untuk Baik)
+    target_score = 3.0
+    target_values = [target_score] * (num_vars + 1)
+    ax.plot(angles, target_values, color='#ef4444', linewidth=1.5, linestyle='--', label=f'Target ({target_score})', zorder=5)
+
+    # 8. ANNOTATION VALUES
+    # Menuliskan nilai persis di dekat titik
+    for angle, score in zip(angles[:-1], scores[:-1]):
+        # Hitung posisi sedikit di luar titik
+        label_pos = score + 0.35
+        
+        # Style kotak nilai
+        ax.text(angle, label_pos, f"{score:.2f}", 
+                ha='center', va='center', size=value_fontsize, weight='bold', color=main_color,
+                bbox=dict(boxstyle="round,pad=0.3", fc="white", ec=main_color, lw=1, alpha=0.9))
+
+    # 9. JUDUL & LEGENDA
+    plt.title(title, size=title_fontsize, weight='bold', color='#1e293b', y=1.15)
     
-    # Nilai di titik dengan styling lebih menarik
-    for i, (angle, score) in enumerate(zip(angles[:-1], scores)):
-        color_idx = i % len(colors)
-        ax.text(angle, score, str(score), ha='center', va='center',
-                fontsize=value_fontsize, weight='bold', color='white',
-                bbox=dict(boxstyle='round,pad=0.4', facecolor=colors[color_idx],
-                         edgecolor='white', linewidth=2.5, alpha=0.95))
-    
-    # Target line dengan styling
-    target = [max_score] * len(angles)
-    ax.plot(angles, target, '--', linewidth=2.5, alpha=0.7, 
-            color='#e74c3c', label='Target', zorder=2)
-    
-    # Judul profesional TANPA border/boundary
-    plt.title(title, fontsize=title_fontsize, weight='bold', 
-             color='#2c3e50', pad=80)
-    
-    # Tambahkan subtitle skala
-    fig.text(0.5, 0.95, 'Skala: 1=Kurang | 2=Cukup | 3=Baik | 4=Baik Sekali', 
-             ha='center', fontsize=11, style='italic', color='#7f8c8d')
-    
-    plt.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), 
-              fontsize=13, frameon=True, shadow=True, fancybox=True)
-    
-    plt.subplots_adjust(top=0.88, bottom=0.08, left=0.08, right=0.92)
-    
+    # Subtitle kecil untuk konteks
+    plt.figtext(0.5, 0.92, "Skala Penilaian: 1 (Kurang) s.d 4 (Sangat Baik)", 
+                ha="center", fontsize=10, color="#64748b", style='italic')
+
+    # Legend di bawah (bottom layout) agar grafik lebih luas
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
+              fancybox=True, shadow=False, ncol=2, frameon=False, fontsize=12)
+
+    plt.tight_layout()
     return fig
 
 # Fungsi untuk Bar Chart Horizontal dengan seaborn
