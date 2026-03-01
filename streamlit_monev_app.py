@@ -218,8 +218,8 @@ def create_radar_chart(labels, scores, title, colors, width, height, dpi_val, us
         else:
             ytick_labels.append(str(i))
     
-    ax.set_yticklabels(ytick_labels,
-                       fontsize=10, color='#5a6c7d', weight='600')
+   # ax.set_yticklabels(ytick_labels,
+   #                    fontsize=10, color='#5a6c7d', weight='600')
     ax.set_ylim(0, max_score * 1.3)
     
     # Grid styling
